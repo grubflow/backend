@@ -30,6 +30,7 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data['username'])
         user.set_password(request.data['password'])
+        user.last_login = timezone.now()
         user.save()
 
         token = Token.objects.create(user=user)
