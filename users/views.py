@@ -40,6 +40,7 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
     def current(self, request):
         user = request.user
         user.last_login = timezone.now()
+        user.save()
         serializer = self.get_serializer(instance=user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
