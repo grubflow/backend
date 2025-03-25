@@ -6,7 +6,7 @@ from .models import User
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['username']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,10 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(read_only=True)
     date_joined = serializers.DateTimeField(read_only=True)
     last_login = serializers.DateTimeField(read_only=True)
-    groups = serializers.StringRelatedField(many=True, read_only=True)
-    user_permissions = serializers.StringRelatedField(
-        many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = '__all__'
+        exclude = ['groups', 'user_permissions']

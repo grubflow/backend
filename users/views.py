@@ -1,10 +1,9 @@
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from .serializers import UserSerializer
@@ -15,9 +14,9 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'token']:
+        if self.action in ['create']:
             permission_classes = [permissions.AllowAny]
-        elif self.action in ['current']:
+        elif self.action in ['current', 'logout']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.IsAuthenticated]
@@ -33,8 +32,13 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
         user.last_login = timezone.now()
         user.save()
 
-        token = Token.objects.create(user=user)
-        return Response({'access': token.key}, status=status.HTTP_201_CREATED)
+        refresh = RefreshToken.for_user(user)
+        access = str(refresh.access_token)
+
+        return Response(
+            {'access': access, 'refresh': str(refresh)},
+            status=status.HTTP_201_CREATED
+        )
 
     @action(methods=['GET'], detail=False)
     def current(self, request):
@@ -46,17 +50,17 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False)
-    def token(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = get_object_or_404(User, username=username)
+    def logout(self, request):
+        refresh_token = request.data.get('refresh')
 
-        if not user.check_password(password):
-            return Response(
-                {'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST
-            )
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                return Response(
+                    {'detail': 'Invalid token'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        user.last_login = timezone.now()
-        token, _ = Token.objects.get_or_create(user=user)
-
-        return Response({'access': token.key}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_205_RESET_CONTENT)
