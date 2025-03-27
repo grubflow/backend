@@ -43,7 +43,10 @@ class SendGroupInviteCreateSerializer(serializers.ModelSerializer):
         request_user = self.context['request'].user
         group = data.get('group')
 
-        if not group or not Group.objects.filter(composite_key=group, members=request_user).exists():
+        if not group or not Group.objects.filter(
+            composite_key=group.composite_key,
+            members=request_user
+        ).exists():
             raise serializers.ValidationError(
                 "You must be a member of the group to send an invite.")
         return data
