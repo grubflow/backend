@@ -29,16 +29,23 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class SendGroupInviteListSerializer(serializers.ModelSerializer):
-    group = GroupListSerializer()
-
     class Meta:
         model = SendGroupInvite
-        fields = ['group']
+        exclude = ['composite_key', 'created', 'modified']
 
 
-class SendGroupInviteSerializer(serializers.ModelSerializer):
-    group = GroupSerializer()
-
+class SendGroupInviteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SendGroupInvite
-        fields = '__all__'
+        exclude = ['accepted', 'composite_key', 'created', 'modified']
+
+    def validate(self, data):
+        request_user = self.context['request'].user
+        if SendGroupInvite.objects.filter(
+                sending_username=request_user,
+                group=data['group'],
+                receiving_username=data['receiving_username']
+        ).exists():
+            raise serializers.ValidationError(
+                "An invite to this user for this group already exists.")
+        return data
