@@ -47,3 +47,24 @@ class SendGroupInviteCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "You must be a member of the group to send an invite.")
         return data
+
+
+class SendGroupInviteUpdateSerializer(serializers.ModelSerializer):
+    sending_username = serializers.PrimaryKeyRelatedField(read_only=True)
+    group = serializers.PrimaryKeyRelatedField(read_only=True)
+    receiving_username = serializers.PrimaryKeyRelatedField(read_only=True)
+    accepted = serializers.BooleanField(required=True)
+
+    class Meta:
+        model = SendGroupInvite
+        exclude = ['composite_key', 'created', 'modified']
+
+    def validate(self, data):
+        request_user = self.context['request'].user
+        if request_user != self.instance.receiving_username:
+            raise serializers.ValidationError(
+                "You are not authorized to accept or decline this invite.")
+        if self.instance.accepted is not None or data.get('accepted') is None:
+            raise serializers.ValidationError(
+                "This invite has already been accepted or declined or is invalid.")
+        return data
