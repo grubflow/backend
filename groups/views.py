@@ -35,15 +35,12 @@ class GroupViewset(viewsets.ModelViewSet):
         group.members.add(self.request.user)
         group.save()
 
-    @action(detail=False, methods=['delete'])
-    def leave(self, request):
-        group = request.data.get('group', None)
-        if not group:
-            return Response({"detail": "group parameter is required."}, status=400)
-        elif not Group.objects.filter(composite_key=group, members=request.user).exists():
+    @action(detail=True, methods=['delete'])
+    def leave(self, request, pk=None):
+        if not Group.objects.filter(composite_key=pk, members=request.user).exists():
             return Response({"detail": "You are not a member of this group."}, status=400)
 
-        group_instance = Group.objects.get(composite_key=group)
+        group_instance = Group.objects.get(composite_key=pk)
         group_instance.members.remove(request.user)
         group_instance.save()
 
