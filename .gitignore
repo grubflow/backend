@@ -89,3 +89,6 @@ db.sqlite3
 # Python virtual env
 venv/
 .venv/
+
+# media
+media/
