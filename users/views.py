@@ -1,15 +1,17 @@
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from common.permissions import IsOwnerOrAdmin
 
 from .models import User
 from .serializers import UserSerializer
 
 
-class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
+class UserViewset(CreateModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -18,6 +20,8 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
             permission_classes = [permissions.AllowAny]
         elif self.action in ['current', 'logout']:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsOwnerOrAdmin]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -25,12 +29,7 @@ class UserViewset(CreateModelMixin, viewsets.GenericViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        user = User.objects.get(username=serializer.data['username'])
-        user.set_password(request.data['password'])
-        user.last_login = timezone.now()
-        user.save()
+        user = serializer.save()
 
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
