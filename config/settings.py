@@ -24,6 +24,7 @@ DEBUG = env.bool('DEBUG')
 ALLOWED_HOSTS = ['*']
 CORS_ALLOW_ALL_ORIGINS = True
 
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 # Application definition
 

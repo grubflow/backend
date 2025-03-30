@@ -13,5 +13,9 @@ dependencies = [
   "django-filter",
   "djangorestframework-simplejwt",
   "drf-yasg",
-  "pillow"
+  "pillow",
+  "pytest",
+  "pytest-django",
+  "pytest-factoryboy",
+  "requests"
 ]
