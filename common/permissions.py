@@ -7,10 +7,7 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return request.user.is_authenticated
-
-        return request.user and request.user.is_authenticated
+        return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request,
@@ -23,16 +20,23 @@ class IsOwnerOrAdmin(permissions.BasePermission):
             return request.user.is_authenticated
 
         # Write permissions are only allowed to the owner of the object or admin users.
-        return obj.owner_username == request.user or request.user.is_staff or request.user.is_superuser
+        is_owner = (
+            hasattr(obj, 'owner_username') and obj.owner_username == request.user or
+            hasattr(obj, 'username') and obj.username == request.user.username
+        )
+        is_admin = request.user.is_staff or request.user.is_superuser
+
+        return is_owner or is_admin
 
 
-class AdminWriteElseAll(permissions.BasePermission):
+class AdminWriteElseAuthenticated(permissions.BasePermission):
     """
-    Custom permission to only allow admin users to write to an object but allow all users to read it.
+    Custom permission to only allow admin users to write to an object
+    but allow authenicated users to read it.
     """
 
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
-            return True
+            return request.user.is_authenticated
 
         return request.user.is_staff or request.user.is_superuser
