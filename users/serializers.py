@@ -1,5 +1,9 @@
+from uuid import uuid4
+
 from django.utils import timezone
+from PIL import Image
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import User
 
@@ -21,6 +25,23 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ['groups', 'user_permissions']
+
+    def validate_image(self, value):
+        if not value:
+            return value
+
+        if not hasattr(value, 'name'):
+            raise ValidationError("Invalid file type. Please upload an image.")
+
+        image = Image.open(value)
+        if image.width != 400 or image.height != 400:
+            raise ValidationError("Image must be exactly 400x400 pixels.")
+
+        extension = value.name.split('.')[-1].lower()
+        new_name = f"{uuid4().hex}.{extension}"
+        value.name = new_name
+
+        return value
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
