@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import User
@@ -20,3 +21,20 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ['groups', 'user_permissions']
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+            instance.save()
+
+        return super().update(instance, validated_data)
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = super().create(validated_data)
+        user.set_password(password)
+        user.last_login = timezone.now()
+        user.save()
+
+        return user
