@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from PIL import Image
 from rest_framework import serializers
@@ -42,6 +43,12 @@ class UserSerializer(serializers.ModelSerializer):
         value.name = new_name
 
         return value
+
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise ValidationError(e.messages)
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
