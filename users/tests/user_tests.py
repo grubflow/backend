@@ -3,40 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIRequestFactory
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .views import UserViewset
-
-
-@pytest.fixture
-def user(db):
-    """
-    Fixture to create a user for testing purposes.
-    """
-    User = get_user_model()
-    return User.objects.create_user(
-        username="testuser",
-        password="testpass",
-        email="test@test.com"
-    )
-
-
-@pytest.fixture
-def user_tokens(user):
-    """
-    Fixture to obtain JWT tokens for the created user.
-    """
-    view = TokenObtainPairView.as_view()
-    request = APIRequestFactory().post(
-        "/api/token/", {
-            "username": "testuser",
-            "password": "testpass"
-        }
-    )
-    response = view(request)
-
-    if response.status_code == 200:
-        return response.data
-    else:
-        raise Exception("Failed to obtain tokens")
+from users.views import UserViewset
 
 
 @pytest.mark.django_db

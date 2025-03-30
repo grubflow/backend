@@ -16,7 +16,7 @@ from .serializers import (GroupListSerializer, GroupSerializer,
 
 class GroupViewset(viewsets.ModelViewSet):
     def get_permissions(self):
-        if self.action == 'leave':
+        if self.action == "leave":
             permissions = [IsAuthenticated]
         else:
             permissions = [IsOwnerOrAdmin]
@@ -26,7 +26,7 @@ class GroupViewset(viewsets.ModelViewSet):
         return Group.objects.filter(members=self.request.user)
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return GroupListSerializer
         return GroupSerializer
 
@@ -35,7 +35,7 @@ class GroupViewset(viewsets.ModelViewSet):
         group.members.add(self.request.user)
         group.save()
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=["delete"])
     def leave(self, request, pk=None):
         if not Group.objects.filter(composite_key=pk, members=request.user).exists():
             return Response({"detail": "You are not a member of this group."}, status=400)
@@ -49,21 +49,21 @@ class GroupViewset(viewsets.ModelViewSet):
 
 class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
     def get_queryset(self):
-        if self.action == 'list':
+        if self.action == "list":
             return SendGroupInvite.objects.filter(
                 receiving_username=self.request.user, accepted__isnull=True)
         return SendGroupInvite.objects.filter(receiving_username=self.request.user)
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return SendGroupInviteListSerializer
-        elif self.action in ['update', 'partial_update']:
+        elif self.action in ["update", "partial_update"]:
             return SendGroupInviteUpdateSerializer
         return SendGroupInviteCreateSerializer
 
     def create(self, request, *args, **kwargs):
-        receiving_username = request.data.get('receiving_username')
-        group = request.data.get('group')
+        receiving_username = request.data.get("receiving_username")
+        group = request.data.get("group")
         existing_invite = SendGroupInvite.objects.filter(
             sending_username=request.user,
             group__composite_key=group,
@@ -76,7 +76,8 @@ class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin,
         if existing_invite and not existing_group:
             existing_invite.delete()
 
-        request.data['sending_username'] = request.user.username
+        setattr(request.data, "_mutable", True)
+        request.data["sending_username"] = request.user.username
         return super().create(request, *args, **kwargs)
 
     def perform_update(self, serializer):
