@@ -50,13 +50,16 @@ class UserSerializer(serializers.ModelSerializer):
         except ValidationError as e:
             raise ValidationError(e.messages)
 
+        return value
+
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
         if password:
-            instance.set_password(password)
-            instance.save()
+            user.set_password(password)
+            user.save()
 
-        return super().update(instance, validated_data)
+        return user
 
     def create(self, validated_data):
         password = validated_data.pop('password')
