@@ -76,7 +76,8 @@ class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin,
         if existing_invite and not existing_group:
             existing_invite.delete()
 
-        setattr(request.data, "_mutable", True)
+        if hasattr(request.data, "_mutable"):
+            setattr(request.data, "_mutable", True)
         request.data["sending_username"] = request.user.username
         return super().create(request, *args, **kwargs)
 
