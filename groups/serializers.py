@@ -33,6 +33,15 @@ class SendGroupInviteListSerializer(serializers.ModelSerializer):
         model = SendGroupInvite
         exclude = ['composite_key', 'created', 'modified']
 
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        request = self.context.get('request')
+        image = instance.group.owner_username.image
+        rep["owner_image"] = request.build_absolute_uri(
+            image.url) if image else None
+
+        return rep
+
 
 class SendGroupInviteCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,7 +50,12 @@ class SendGroupInviteCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request_user = self.context['request'].user
+        receiving_username = data.get("receiving_username")
         group = data.get('group')
+
+        if request_user == receiving_username:
+            raise serializers.ValidationError(
+                "You cannot send an invite to yourself.")
 
         if not group or not Group.objects.filter(
             composite_key=group.composite_key,
