@@ -42,7 +42,7 @@ def test_login(user):
 
 
 @pytest.mark.django_db
-def test_user_detail(user, user_tokens):
+def test_user_detail(user_tokens):
     """Test user detail endpoint"""
     view = UserViewset.as_view({"get": "current"})
     request = APIRequestFactory().get("/api/users/current/")

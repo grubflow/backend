@@ -7,12 +7,23 @@ from groups.models import Group, SendGroupInvite
 
 
 @pytest.fixture
-def user(db):
+def create_user(db):
+    """
+    Fixture to create a user with specific fields for testing purposes.
+    """
+    def make(**kwargs):
+        User = get_user_model()
+        return User.objects.create_user(**kwargs)
+
+    return make
+
+
+@pytest.fixture
+def user(create_user):
     """
     Fixture to create a user for testing purposes.
     """
-    User = get_user_model()
-    return User.objects.create_user(
+    return create_user(
         username="testuser",
         password="testpass",
         email="test@test.com"
@@ -20,12 +31,11 @@ def user(db):
 
 
 @pytest.fixture
-def user2(db):
+def user2(create_user):
     """
     Fixture to create a user for testing purposes.
     """
-    User = get_user_model()
-    return User.objects.create_user(
+    return create_user(
         username="testuser2",
         password="testpass",
         email="test2@test.com"
@@ -73,7 +83,7 @@ def user2_tokens(user2):
 
 
 @pytest.fixture
-def group(db, user):
+def group(user):
     """
     Fixture to create a group for testing purposes.
     """
@@ -85,7 +95,7 @@ def group(db, user):
 
 
 @pytest.fixture
-def invite(db, user, user2, group):
+def invite(user, user2, group):
     """
     Fixture to create a SendGroupInvite instance for testing purposes.
     """

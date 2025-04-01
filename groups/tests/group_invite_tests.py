@@ -67,3 +67,35 @@ def test_invite_decline(user2, user2_tokens, invite):
     assert response.status_code == 200
     assert response.data["accepted"] is False
     assert user2 not in group.members.all()
+
+
+@pytest.mark.django_db
+def test_group_full(create_user, user2, user2_tokens, invite):
+    """
+    Test accepting an invite when the group is full
+    """
+    group = invite.group
+    for i in range(3, group.capacity + 2):
+        user = create_user(
+            username=f"test{i}",
+            password="testpass",
+            email=f"test{i}@test.com"
+        )
+        group.members.add(user)
+    group.save()
+
+    assert group.member_count == group.capacity
+
+    view = SendGroupInviteViewset.as_view({"put": "update"})
+    request = APIRequestFactory().put(
+        f"/api/groups/invite/{invite.composite_key}/", {
+            "accepted": True
+        }
+    )
+    token = user2_tokens["access"]
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+    response = view(request, pk=invite.composite_key)
+    group = Group.objects.get(composite_key=invite.group.composite_key)
+
+    assert response.status_code == 400
+    assert user2 not in group.members.all()
