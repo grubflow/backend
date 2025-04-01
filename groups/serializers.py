@@ -8,13 +8,14 @@ from .models import Group, SendGroupInvite
 class GroupListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['name', 'owner_username', 'member_count']
+        fields = ['name', 'owner_username', 'member_count', 'capacity']
 
 
 class GroupSerializer(serializers.ModelSerializer):
     members = UserListSerializer(many=True, read_only=True)
     member_count = serializers.IntegerField(read_only=True)
     owner_username = serializers.PrimaryKeyRelatedField(read_only=True)
+    capacity = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Group
@@ -31,7 +32,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class SendGroupInviteListSerializer(serializers.ModelSerializer):
     class Meta:
         model = SendGroupInvite
-        exclude = ['composite_key', 'created', 'modified']
+        exclude = ['composite_key', 'created', 'modified', 'accepted']
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
