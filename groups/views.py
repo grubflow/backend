@@ -81,9 +81,20 @@ class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin,
         request.data["sending_username"] = request.user.username
         return super().create(request, *args, **kwargs)
 
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        if instance.accepted:
-            group = instance.group
-            group.members.add(instance.receiving_username)
+    def update(self, request, **kwargs):
+        pk = kwargs.get("pk")
+        instance = SendGroupInvite.objects.get(composite_key=pk)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=False)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        group = serializer.instance.group
+        if serializer.instance.accepted:
+            if group.member_count >= group.capacity:
+                return Response({"detail": "Group is full."}, status=400)
+
+            group.members.add(serializer.instance.receiving_username)
             group.save()
+
+        return Response(serializer.data)
