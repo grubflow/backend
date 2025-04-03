@@ -109,7 +109,7 @@ class RecipeUpdateSerializer(serializers.ModelSerializer):
         if Recipe.objects.filter(
             name__iexact=lowercased_name,
             owner_username=request_user
-        ).exists():
+        ).exists() and self.context["request"].method not in ["PATCH", "PUT"]:
             raise serializers.ValidationError(
                 "recipe with this name already exists.")
 
