@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (CreateModelMixin, ListModelMixin,
@@ -83,7 +84,7 @@ class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin,
 
     def update(self, request, **kwargs):
         pk = kwargs.get("pk")
-        instance = SendGroupInvite.objects.get(composite_key=pk)
+        instance = get_object_or_404(SendGroupInvite, pk=pk)
         serializer = self.get_serializer(
             instance, data=request.data, partial=False)
         serializer.is_valid(raise_exception=True)
