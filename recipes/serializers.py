@@ -106,11 +106,13 @@ class RecipeUpdateSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         lowercased_name = value.lower()
         request_user = self.context["request"].user
+        current_instance_id = self.instance.id if self.instance else None
+
         if Recipe.objects.filter(
             name__iexact=lowercased_name,
             owner_username=request_user
-        ).exists() and self.context["request"].method not in ["PATCH", "PUT"]:
+        ).exclude(id=current_instance_id).exists():
             raise serializers.ValidationError(
-                "recipe with this name already exists.")
-
+                "A recipe with this name already exists."
+            )
         return lowercased_name
