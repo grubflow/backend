@@ -23,6 +23,7 @@ urlpatterns = [
          cache_timeout=0), name='schema-swagger-ui'),
     path('api/users/', include('users.urls')),
     path('api/groups/', include('groups.urls')),
+    path('api/restaurants/', include('restaurants.urls')),
 ]
 
 if settings.DEBUG:
