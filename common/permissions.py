@@ -22,7 +22,8 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         # Write permissions are only allowed to the owner of the object or admin users.
         is_owner = (
             hasattr(obj, 'owner_username') and obj.owner_username == request.user or
-            hasattr(obj, 'username') and obj.username == request.user.username
+            hasattr(obj, 'username') and obj.username == request.user.username or
+            hasattr(obj, 'recipe') and obj.recipe.owner_username == request.user
         )
         is_admin = request.user.is_staff or request.user.is_superuser
 

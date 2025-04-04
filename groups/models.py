@@ -11,6 +11,7 @@ class Group(TimeStampedModel):
         max_length=200, primary_key=True)
     members = models.ManyToManyField(
         'users.User', related_name='group_members', blank=True)
+    capacity = models.IntegerField(default=10)
 
     @property
     def member_count(self):
