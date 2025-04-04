@@ -36,6 +36,9 @@ class Step(TimeStampedModel):
     def __str__(self):
         return f"Step {self.step_number} of {self.recipe.name}"
 
+    class Meta:
+        ordering = ['step_number']
+
 
 class Ingredient(TimeStampedModel):
     name = models.CharField(max_length=255, primary_key=True)

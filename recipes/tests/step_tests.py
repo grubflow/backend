@@ -13,20 +13,24 @@ def test_create_step(user_tokens, recipe):
     view = StepViewSet.as_view({"post": "create"})
     request = APIRequestFactory().post(
         "/api/recipes/steps/", {
-            "step_number": 3,
-            "description": "Eat the pasta.",
+            "step_number": 1,
+            "description": "Prepare the pasta.",
             "recipe": recipe.pk
         },
     )
     token = user_tokens["access"]
     request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
     response = view(request)
+    recipe.refresh_from_db()
 
     assert response.status_code == 201
-    assert response.data["description"] == "Eat the pasta."
+    assert response.data["description"] == "Prepare the pasta."
     step = Step.objects.get(id=response.data["id"])
-    assert step.step_number == 3
+    assert step.step_number == 1
     assert step.recipe == recipe
+    assert recipe.steps[0].step_number == 1
+    assert recipe.steps[1].step_number == 2
+    assert recipe.steps[2].step_number == 3
 
 
 @pytest.mark.django_db

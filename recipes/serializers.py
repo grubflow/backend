@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from .models import Ingredient, Recipe, Step
@@ -42,9 +43,29 @@ class StepCreateSerializer(serializers.ModelSerializer):
                 "You do not have permission to add steps to this recipe.")
         return value
 
+    def validate_step_number(self, value):
+        recipe_id = self.context["request"].data.get("recipe")
+        recipe = Recipe.objects.filter(id=recipe_id).first()
+        recipe_steps = len(recipe.steps) if recipe else -1
+
+        if value < 1 or value > recipe_steps + 1:
+            raise serializers.ValidationError(
+                "Step number must be greater than 0 and less than or equal total steps + 1.")
+        return value
+
+    def create(self, validated_data):
+        step_number = validated_data["step_number"]
+        recipe = validated_data["recipe"]
+        Step.objects.filter(
+            recipe=recipe, step_number__gte=step_number).update(
+            step_number=F("step_number") + 1
+        )
+        return Step.objects.create(**validated_data)
+
 
 class StepCreateInternalSerializer(serializers.ModelSerializer):
     recipe = serializers.PrimaryKeyRelatedField(read_only=True)
+    step_number = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Step
@@ -81,8 +102,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         steps_data = validated_data.pop("steps", [])
         ingredients_data = validated_data.pop("ingredients", [])
         recipe = Recipe.objects.create(**validated_data)
-        for step_data in steps_data:
-            Step.objects.create(recipe=recipe, **step_data)
+        for i, step_data in enumerate(steps_data, start=1):
+            Step.objects.create(recipe=recipe, step_number=i, **step_data)
 
         recipe.ingredients.set(ingredients_data)
 
