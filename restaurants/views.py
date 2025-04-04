@@ -1,9 +1,6 @@
-from django.shortcuts import render
 from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework import permissions, status, viewsets
+from rest_framework import viewsets
 from common.permissions import AdminWriteElseAuthenticated
-import restaurants
 from .models import Restaurant
 from .serializers import RestaurantSerializer
 # Create your views here.

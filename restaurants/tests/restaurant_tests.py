@@ -8,7 +8,7 @@ from restaurants.views import RestaurantView
 # Create your tests here.
 @pytest.mark.django_db
 def test_create_restaurants(admin_user_tokens):
-    """Test user registration endpoint"""
+    """Test Restaurant endpoint existence and data"""
     view = RestaurantView.as_view({"post": 'create'})
     request = APIRequestFactory().post(
         "/api/restaurants/", {
