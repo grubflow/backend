@@ -11,11 +11,7 @@ from .serializers import RestaurantSerializer
 
 class RestaurantView(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
-    serializerClass = RestaurantSerializer
-    permissionClasses = [AdminWriteElseAuthenticated]
+    serializer_class = RestaurantSerializer
+    permission_classes = [AdminWriteElseAuthenticated]
 
-    def createRestaurant(self, request):
-        restaurants = Restaurant.objects.all()
-        serializer = RestaurantSerializer(restaurants, many = True)
-        return Response(serializer.data)
     
