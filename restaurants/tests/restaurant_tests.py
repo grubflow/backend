@@ -9,7 +9,7 @@ from restaurants.views import RestaurantView
 
 # Create your tests here.
 @pytest.mark.django_db
-def test_create_restaurants():
+def test_create_restaurants(user_tokens):
     """Test user registration endpoint"""
     view = RestaurantView.as_view({"post": 'create'})
     request = APIRequestFactory().post(
@@ -19,6 +19,10 @@ def test_create_restaurants():
             
         }
     )
+
+    token = user_tokens["access"]
+    request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+
     response = view(request)
 
     assert response.status_code == 201
