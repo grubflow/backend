@@ -1,15 +1,13 @@
-from django.test import TestCase
 import pytest
-from django.contrib.auth import get_user_model
 from rest_framework.test import APIRequestFactory
-from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 from restaurants.models import Restaurant
 from restaurants.views import RestaurantView
 
 # Create your tests here.
 @pytest.mark.django_db
-def test_create_restaurants(user_tokens):
+def test_create_restaurants(admin_user_tokens):
     """Test user registration endpoint"""
     view = RestaurantView.as_view({"post": 'create'})
     request = APIRequestFactory().post(
@@ -20,7 +18,7 @@ def test_create_restaurants(user_tokens):
         }
     )
 
-    token = user_tokens["access"]
+    token = admin_user_tokens["access"]
     request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
 
     response = view(request)
