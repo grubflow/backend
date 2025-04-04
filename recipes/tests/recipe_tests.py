@@ -19,11 +19,9 @@ def test_create_recipe(user, user_tokens, ingredients):
             "ingredients": ["sugar"],
             "steps": [
                 {
-                    "step_number": 1,
                     "description": "Boil water and cook pasta."
                 },
                 {
-                    "step_number": 2,
                     "description": "Drain and serve."
                 }
             ]
