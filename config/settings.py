@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
     'users',
     'groups',
-    'restaurants'
+    'restaurants',
     'recipes',
 
 ]
