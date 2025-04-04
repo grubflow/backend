@@ -138,3 +138,35 @@ def recipe(user, ingredients):
     recipe.save()
 
     return recipe
+
+@pytest.fixture
+def admin_user(create_user):
+    """
+    Fixture to create an admin user for testing purposes.
+    """
+    return create_user(
+        username="testadminuser",
+        password="testpass",
+        email="admintest@test.com",
+        is_staff=True,
+        is_superuser=True,
+    )
+
+@pytest.fixture
+def admin_user_tokens(admin_user):
+    """
+    Fixture to obtain JWT tokens for the created user.
+    """
+    view = TokenObtainPairView.as_view()
+    request = APIRequestFactory().post(
+        "/api/token/", {
+            "username": "testadminuser",
+            "password": "testpass"
+        }
+    )
+    response = view(request)
+
+    if response.status_code == 200:
+        return response.data
+    else:
+        raise Exception("Failed to obtain tokens")
