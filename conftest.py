@@ -160,7 +160,7 @@ def admin_user_tokens(admin_user):
     view = TokenObtainPairView.as_view()
     request = APIRequestFactory().post(
         "/api/token/", {
-            "username": "admintestuser",
+            "username": "testadminuser",
             "password": "testpass"
         }
     )
