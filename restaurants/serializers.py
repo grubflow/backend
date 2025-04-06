@@ -9,7 +9,7 @@ from .models import Restaurant
 class RestaurantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
-        fields = '__all__'
+        exclude = ['created', 'modified']
 
     def validate_image(self, value):
         if not value:
