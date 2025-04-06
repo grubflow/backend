@@ -1,5 +1,8 @@
+from uuid import uuid4
+
 from django.db.models import F
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Ingredient, Recipe, Step
 
@@ -98,6 +101,19 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return lowercased_name
 
+    def validate_image(self, value):
+        if not value:
+            return value
+
+        if not hasattr(value, 'name'):
+            raise ValidationError("Invalid file type. Please upload an image.")
+
+        extension = value.name.split('.')[-1].lower()
+        new_name = f"{uuid4().hex}.{extension}"
+        value.name = new_name
+
+        return value
+
     def create(self, validated_data):
         steps_data = validated_data.pop("steps", [])
         ingredients_data = validated_data.pop("ingredients", [])
@@ -137,3 +153,16 @@ class RecipeUpdateSerializer(serializers.ModelSerializer):
                 "A recipe with this name already exists."
             )
         return lowercased_name
+
+    def validate_image(self, value):
+        if not value:
+            return value
+
+        if not hasattr(value, 'name'):
+            raise ValidationError("Invalid file type. Please upload an image.")
+
+        extension = value.name.split('.')[-1].lower()
+        new_name = f"{uuid4().hex}.{extension}"
+        value.name = new_name
+
+        return value
