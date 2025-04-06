@@ -8,6 +8,7 @@ from recipes.models import Ingredient, Recipe, Step
 from recipes.serializers import (IngredientSerializer, RecipeListSerializer,
                                  RecipeSerializer, RecipeUpdateSerializer,
                                  StepCreateSerializer, StepUpdateSerializer)
+from swipables.models import Swipable
 
 
 class IngredientViewSet(CreateModelMixin, ListModelMixin, viewsets.GenericViewSet):
@@ -57,4 +58,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     def perform_create(self, serializer):
-        serializer.save(owner_username=self.request.user)
+        instance = serializer.save(owner_username=self.request.user)
+        Swipable.objects.create(recipe=instance)

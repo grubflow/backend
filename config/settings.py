@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'groups',
     'restaurants',
     'recipes',
-
+    'swipables'
 ]
 
 MIDDLEWARE = [

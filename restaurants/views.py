@@ -1,8 +1,10 @@
 from rest_framework import viewsets
+
 from common.permissions import AdminWriteElseAuthenticated
+from swipables.models import Swipable
+
 from .models import Restaurant
 from .serializers import RestaurantSerializer
-# Create your views here.
 
 
 class RestaurantView(viewsets.ModelViewSet):
@@ -10,4 +12,6 @@ class RestaurantView(viewsets.ModelViewSet):
     serializer_class = RestaurantSerializer
     permission_classes = [AdminWriteElseAuthenticated]
 
-    
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        Swipable.objects.create(restaurant=instance)
