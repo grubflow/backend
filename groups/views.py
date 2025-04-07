@@ -47,6 +47,22 @@ class GroupViewset(viewsets.ModelViewSet):
 
         return Response(status=204)
 
+    @action(detail=True, methods=["get"])
+    def start_session(self, request, **kwargs):
+        pk = kwargs.get("pk")
+        group = get_object_or_404(Group, composite_key=pk)
+
+        if group.owner_username != request.user:
+            return Response({"detail": "You do not have permission to perform this action."}, status=403)
+
+        if group.name == request.user.username:
+            return Response({"detail": "You cannot start a session for yourself."}, status=400)
+
+        group.num_sessions += 1
+        group.save()
+
+        return Response({"detail": f"Session {group.num_sessions} started."}, status=200)
+
 
 class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
     def get_queryset(self):

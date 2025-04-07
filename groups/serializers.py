@@ -16,6 +16,7 @@ class GroupSerializer(serializers.ModelSerializer):
     member_count = serializers.IntegerField(read_only=True)
     owner_username = serializers.PrimaryKeyRelatedField(read_only=True)
     capacity = serializers.IntegerField(read_only=True)
+    num_sessions = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Group
@@ -26,6 +27,11 @@ class GroupSerializer(serializers.ModelSerializer):
         if Group.objects.filter(owner_username=request_user, name=value).exists():
             raise serializers.ValidationError(
                 "A group with this name already exists.")
+
+        if value == request_user.username:
+            raise serializers.ValidationError(
+                "You cannot name a group the same as your username.")
+
         return value
 
 
@@ -53,6 +59,10 @@ class SendGroupInviteCreateSerializer(serializers.ModelSerializer):
         request_user = self.context['request'].user
         receiving_username = data.get("receiving_username")
         group = data.get('group')
+
+        if group.name == request_user.username:
+            raise serializers.ValidationError(
+                "You cannot invite users to your base group.")
 
         if request_user == receiving_username:
             raise serializers.ValidationError(

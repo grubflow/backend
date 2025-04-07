@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from common.permissions import IsOwnerOrAdmin
+from groups.models import Group
 
 from .models import User
 from .serializers import UserSerializer
@@ -30,6 +31,14 @@ class UserViewset(CreateModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        group = Group.objects.create(
+            name=user.username,
+            owner_username=user,
+            num_sessions=1
+        )
+        group.members.add(user)
+        group.save()
 
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
