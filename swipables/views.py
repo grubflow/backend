@@ -31,10 +31,10 @@ class SwipableListView(ListAPIView):
     serializer_class = SwipableListSerializer
 
     def get_queryset(self):
-        group_id = self.request.data.get('group')
+        group_id = self.request.query_params.get('group')
         if not group_id:
             raise ValidationError(
-                {"detail": "Group parameter is required in the request body."})
+                {"detail": "group parameter is required as a query parameter."})
 
         session = get_object_or_404(Group, pk=group_id).num_sessions
         swiped_swipables = Swipe.objects.filter(

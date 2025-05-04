@@ -5,6 +5,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from groups.models import Group, SendGroupInvite
 from recipes.models import Ingredient, Recipe
+from restaurants.models import Restaurant
+from swipables.models import Swipable, Swipe
 
 
 @pytest.fixture
@@ -137,7 +139,24 @@ def recipe(user, ingredients):
         step_number=2, description="Drain and serve.", recipe=recipe)
     recipe.save()
 
+    Swipable.objects.create(recipe=recipe)
+
     return recipe
+
+
+@pytest.fixture
+def restaurant(db):
+    """
+    Fixture to create a restaurant for testing purposes.
+    """
+    restaurant = Restaurant.objects.create(
+        name="Dairy Queen",
+        category="Fast Food"
+    )
+    Swipable.objects.create(restaurant=restaurant)
+
+    return restaurant
+
 
 @pytest.fixture
 def admin_user(create_user):
@@ -151,6 +170,7 @@ def admin_user(create_user):
         is_staff=True,
         is_superuser=True,
     )
+
 
 @pytest.fixture
 def admin_user_tokens(admin_user):
