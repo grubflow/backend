@@ -1,10 +1,12 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.mixins import CreateModelMixin
 
-from groups.models import GroupFoodScore
+from groups.models import Group, GroupFoodScore
 
-from .models import Swipe
-from .serializers import SwipeSerializer
+from .models import Swipable, Swipe
+from .serializers import SwipableListSerializer, SwipeSerializer
 
 
 class SwipeViewset(CreateModelMixin, viewsets.GenericViewSet):
@@ -23,3 +25,20 @@ class SwipeViewset(CreateModelMixin, viewsets.GenericViewSet):
         if not created:
             group_food_score.score += instance.score
             group_food_score.save()
+
+
+class SwipableListView(ListAPIView):
+    serializer_class = SwipableListSerializer
+
+    def get_queryset(self):
+        group_id = self.request.data.get('group')
+        if not group_id:
+            raise ValidationError(
+                {"detail": "Group parameter is required in the request body."})
+
+        session = get_object_or_404(Group, pk=group_id).num_sessions
+        swiped_swipables = Swipe.objects.filter(
+            owner_username=self.request.user, group_id=group_id, session=session
+        ).values_list('swipable_id', flat=True)
+
+        return Swipable.objects.exclude(id__in=swiped_swipables)

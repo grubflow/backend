@@ -47,10 +47,11 @@ class Swipe(TimeStampedModel):
         related_name="swipes",
     )
     score = models.IntegerField()
+    session = models.IntegerField()
 
     def __str__(self):
         return f"{self.owner_username} - {self.swipable} - {self.group}"
 
     class Meta:
         ordering = ["id"]
-        unique_together = ("owner_username", "swipable", "group")
+        unique_together = ("owner_username", "swipable", "group", "session")
