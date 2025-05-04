@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
+from swipables.serializers import SwipableListSerializer
 from users.serializers import UserListSerializer
 
-from .models import Group, SendGroupInvite
+from .models import Group, GroupFoodScore, SendGroupInvite
 
 
 class GroupListSerializer(serializers.ModelSerializer):
@@ -96,3 +97,11 @@ class SendGroupInviteUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "This invite has already been accepted or declined or is invalid.")
         return data
+
+
+class GroupFoodScoreListSerializer(serializers.ModelSerializer):
+    swipable = SwipableListSerializer(read_only=True)
+
+    class Meta:
+        model = GroupFoodScore
+        fields = ['id', 'score', 'session', 'swipable']

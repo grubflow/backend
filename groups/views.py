@@ -3,14 +3,16 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (CreateModelMixin, ListModelMixin,
                                    UpdateModelMixin)
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import PermissionDenied
 
 from common.permissions import IsOwnerOrAdmin
 
-from .models import Group, SendGroupInvite
-from .serializers import (GroupListSerializer, GroupSerializer,
-                          SendGroupInviteCreateSerializer,
+from .models import Group, GroupFoodScore, SendGroupInvite
+from .serializers import (GroupFoodScoreListSerializer, GroupListSerializer,
+                          GroupSerializer, SendGroupInviteCreateSerializer,
                           SendGroupInviteListSerializer,
                           SendGroupInviteUpdateSerializer)
 
@@ -62,6 +64,23 @@ class GroupViewset(viewsets.ModelViewSet):
         group.save()
 
         return Response({"detail": f"Session {group.num_sessions} started."}, status=200)
+
+    @action(detail=True, methods=["get"])
+    def scores(self, request, **kwargs):
+        pk = kwargs.get("pk")
+        session = request.query_params.get("session")
+        group = get_object_or_404(Group, composite_key=pk)
+        session = session or group.num_sessions
+
+        if request.user not in group.members.all():
+            return PermissionDenied({"detail": "You are not a member of this group."})
+
+        queryset = GroupFoodScore.objects.filter(group=group, session=session)
+        paginated_queryset = self.paginate_queryset(queryset)
+        serializer = GroupFoodScoreListSerializer(
+            paginated_queryset, many=True)
+
+        return self.get_paginated_response(serializer.data)
 
 
 class SendGroupInviteViewset(CreateModelMixin, ListModelMixin, UpdateModelMixin, viewsets.GenericViewSet):

@@ -77,5 +77,5 @@ class GroupFoodScore(TimeStampedModel):
         return f"{self.swipable} - {self.group} - {self.session}"
 
     class Meta:
-        ordering = ['created']
+        ordering = ['-score', '-session']
         unique_together = ['swipable', 'group', 'session']
