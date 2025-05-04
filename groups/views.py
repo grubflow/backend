@@ -3,7 +3,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (CreateModelMixin, ListModelMixin,
                                    UpdateModelMixin)
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import PermissionDenied
@@ -40,18 +39,21 @@ class GroupViewset(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["delete"])
     def leave(self, request, pk=None):
+        group_instance = get_object_or_404(Group, composite_key=pk)
+
         if not Group.objects.filter(composite_key=pk, members=request.user).exists():
             return Response({"detail": "You are not a member of this group."}, status=400)
 
-        group_instance = Group.objects.get(composite_key=pk)
+        if group_instance.owner_username == request.user:
+            return Response({"detail": "You cannot leave your own group."}, status=400)
+
         group_instance.members.remove(request.user)
         group_instance.save()
 
         return Response(status=204)
 
     @action(detail=True, methods=["get"])
-    def start_session(self, request, **kwargs):
-        pk = kwargs.get("pk")
+    def start_session(self, request, pk=None):
         group = get_object_or_404(Group, composite_key=pk)
 
         if group.owner_username != request.user:
@@ -66,8 +68,7 @@ class GroupViewset(viewsets.ModelViewSet):
         return Response({"detail": f"Session {group.num_sessions} started."}, status=200)
 
     @action(detail=True, methods=["get"])
-    def scores(self, request, **kwargs):
-        pk = kwargs.get("pk")
+    def scores(self, request, pk=None):
         session = request.query_params.get("session")
         group = get_object_or_404(Group, composite_key=pk)
         session = session or group.num_sessions
