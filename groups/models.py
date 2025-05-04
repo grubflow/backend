@@ -12,13 +12,17 @@ class Group(TimeStampedModel):
     members = models.ManyToManyField(
         'users.User', related_name='group_members', blank=True)
     capacity = models.IntegerField(default=10)
+    num_sessions = models.IntegerField(default=0)
 
     @property
     def member_count(self):
         return self.members.count()
 
     def save(self, *args, **kwargs):
-        self.composite_key = f'{self.owner_username.username}_{self.name}'
+        if self.name != self.owner_username.username:
+            self.composite_key = f'{self.owner_username.username}_{self.name}'
+        else:
+            self.composite_key = self.name
         super(Group, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -52,3 +56,26 @@ class SendGroupInvite(TimeStampedModel):
     class Meta:
         ordering = ['created']
         unique_together = ['sending_username', 'group', 'receiving_username']
+
+
+class GroupFoodScore(TimeStampedModel):
+    id = models.AutoField(primary_key=True)
+    swipable = models.ForeignKey(
+        'swipables.Swipable',
+        on_delete=models.CASCADE,
+        related_name='group_food_scores'
+    )
+    group = models.ForeignKey(
+        'groups.Group',
+        on_delete=models.CASCADE,
+        related_name='group_food_scores'
+    )
+    score = models.IntegerField()
+    session = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.swipable} - {self.group} - {self.session}"
+
+    class Meta:
+        ordering = ['-score', '-session']
+        unique_together = ['swipable', 'group', 'session']

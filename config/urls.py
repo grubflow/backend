@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/groups/', include('groups.urls')),
     path('api/restaurants/', include('restaurants.urls')),
     path('api/recipes/', include('recipes.urls')),
+    path('api/swipables/', include('swipables.urls')),
 ]
 
 if settings.DEBUG:
