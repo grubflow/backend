@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from swipables.models import Swipe
 from swipables.serializers import SwipableListSerializer
 from users.serializers import UserListSerializer
 
@@ -105,3 +106,12 @@ class GroupFoodScoreListSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupFoodScore
         fields = ['id', 'score', 'session', 'swipable']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        num_swipes = Swipe.objects.filter(
+            swipable=instance.swipable, session=instance.session, group=instance.group
+        ).count()
+        representation["score"] = instance.score / num_swipes
+
+        return representation
