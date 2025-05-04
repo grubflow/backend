@@ -16,6 +16,15 @@ class UserViewset(CreateModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def create_default_group(self, user):
+        group = Group.objects.create(
+            name=user.username,
+            owner_username=user,
+            num_sessions=1
+        )
+        group.members.add(user)
+        group.save()
+
     def get_permissions(self):
         if self.action in ['create']:
             permission_classes = [permissions.AllowAny]
@@ -32,13 +41,7 @@ class UserViewset(CreateModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        group = Group.objects.create(
-            name=user.username,
-            owner_username=user,
-            num_sessions=1
-        )
-        group.members.add(user)
-        group.save()
+        self.create_default_group(user)
 
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
@@ -54,6 +57,9 @@ class UserViewset(CreateModelMixin, UpdateModelMixin, viewsets.GenericViewSet):
         user.last_login = timezone.now()
         user.save()
         serializer = self.get_serializer(instance=user)
+
+        if not Group.objects.filter(owner_username=user, name=user.username).exists():
+            self.create_default_group(user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
